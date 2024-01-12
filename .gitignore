@@ -3,3 +3,4 @@ venv
 lab
 .idea
 .streamlit/secrets.toml
+**/__pycache__/

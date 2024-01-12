@@ -2,7 +2,7 @@ import streamlit as st
 
 from src.data import load_data, filter_data
 from src.filter import slider, multiselect
-from src.graph import Plot
+from src.graph import Plot, SizeDimPlot
 
 
 raw_data = load_data()
@@ -64,13 +64,13 @@ filtered_data = filter_data(
     selected_types=selected_types,
 )
 
-elasticity_plot = Plot(
+elasticity_plot = SizeDimPlot(
     title="Comparison by Elasticity Indices",
     raw_data=raw_data,
     x_dim='Ep',
     y_dim="Ec/Ep",
     size_dim="Vp",
-    marker_size_function=lambda x: 1 / x ** 7,
+    marker_size_function=lambda x: 1 / x ** 8,
     legend_marker_size_function=lambda x: 10 / x,
 )
 st.plotly_chart(
@@ -78,16 +78,27 @@ st.plotly_chart(
     use_container_width=True,
 )
 
-vibration_plot = Plot(
+vibration_plot = SizeDimPlot(
     title="Comparison by Vibration Indices",
     raw_data=raw_data,
     x_dim='Vp',
     y_dim="Vl/Vp",
     size_dim="Ep",
-    marker_size_function=lambda x: x ** 3,
+    marker_size_function=lambda x: x ** 3.8,
     legend_marker_size_function=lambda x: x ** 3,
 )
 st.plotly_chart(
     vibration_plot.plot(filtered_data),
+    use_container_width=True,
+)
+
+ep_vs_vp_plot = Plot(
+    title="Ep vs. Vp",
+    raw_data=raw_data,
+    x_dim='Ep',
+    y_dim="Vp",
+)
+st.plotly_chart(
+    ep_vs_vp_plot.plot(filtered_data),
     use_container_width=True,
 )
