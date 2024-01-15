@@ -2,15 +2,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+from sklearn.linear_model import LinearRegression
 
 COLOR_SCALE = px.colors.qualitative.Plotly
-TYPE_COLORS = {
-    '5-Ply': COLOR_SCALE[0],
-    '7-Ply': COLOR_SCALE[1],
-    'Carbon Inner': COLOR_SCALE[2],
-    'Carbon Outer': COLOR_SCALE[3],
-    'Other': COLOR_SCALE[4],
-}
 
 
 class Plot:
@@ -20,13 +14,19 @@ class Plot:
             raw_data: pd.DataFrame,
             x_dim: str,
             y_dim: str,
-            type_colors: dict[str, str] = TYPE_COLORS,
+            type_colors_scale=COLOR_SCALE,
     ):
         self.title = title
         self.raw_data = raw_data
         self.x_dim = x_dim
         self.y_dim = y_dim
-        self.type_colors = type_colors
+        self.type_colors = self._get_type_colors(type_colors_scale, raw_data)
+
+    def _get_type_colors(self, type_colors_scale, raw_data):
+        return {
+            t: type_colors_scale[i]
+            for i, t in enumerate(raw_data['Type'].drop_duplicates().sort_values())
+        }
 
     def _marker_config(self, type: str, type_data: pd.DataFrame) -> dict:
         return dict(
@@ -99,12 +99,12 @@ class SizeDimPlot(Plot):
             x_dim: str,
             y_dim: str,
             size_dim: str,
-            type_colors: dict[str, str] = TYPE_COLORS,
+            type_colors_scale=COLOR_SCALE,
             marker_size_function=lambda x: x,
             legend_marker_size_function=lambda x: x,
             max_marker_size: int = 25.,
     ):
-        super().__init__(title, raw_data, x_dim, y_dim, type_colors)
+        super().__init__(title, raw_data, x_dim, y_dim, type_colors_scale)
         self.size_dim = size_dim
         self._marker_size = marker_size_function
         self._legend_marker_size = legend_marker_size_function
@@ -152,12 +152,55 @@ class SizeDimPlot(Plot):
                 legend="legend2",
             )
 
-            fig.update_layout(
-                legend2={
-                    "title": self.size_dim,
-                    "y": 0.0,
-                    'itemclick': False,
-                    'itemdoubleclick': False,
-                }
-            )
+        fig.update_layout(
+            legend2={
+                "title": self.size_dim,
+                "y": 0.0,
+                'itemclick': False,
+                'itemdoubleclick': False,
+            }
+        )
+        return fig
+
+
+class TrendLinePlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.trend_line = self._fit_trend_line_regression(self.raw_data)
+
+    def _fit_trend_line_regression(self, raw_data):
+        return LinearRegression().fit(
+            raw_data[self.x_dim].values.reshape(-1, 1),
+            raw_data[self.y_dim],
+        )
+
+    def plot(self, filtered_data: pd.DataFrame):
+        fig = super().plot(filtered_data)
+
+        x_start = min(filtered_data[self.x_dim].min(), 1)
+        x_end = filtered_data[self.x_dim].max()
+        y_start, y_end = self.trend_line.predict([[x_start], [x_end]])
+
+        fig.add_trace(go.Scatter(
+            x=[x_start, x_end],
+            y=[y_start, y_end],
+            mode='lines',
+            opacity=0.2,
+            line=dict(
+                color='red',
+                width=2,
+                dash='dash'
+            ),
+            legend="legend2",
+            name="Trend Line"
+        ))
+
+        fig.update_layout(
+            legend2={
+                "y": 0.0,
+                'itemclick': False,
+                'itemdoubleclick': False,
+            }
+        )
+
         return fig

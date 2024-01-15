@@ -2,7 +2,7 @@ import streamlit as st
 
 from src.data import load_data, filter_data
 from src.filter import slider, multiselect
-from src.graph import Plot, SizeDimPlot
+from src.graph import TrendLinePlot, SizeDimPlot
 
 
 raw_data = load_data()
@@ -92,8 +92,8 @@ st.plotly_chart(
     use_container_width=True,
 )
 
-ep_vs_vp_plot = Plot(
-    title="Ep vs. Vp",
+ep_vs_vp_plot = TrendLinePlot(
+    title="Primary Elasticity vs. Primary Vibration",
     raw_data=raw_data,
     x_dim='Ep',
     y_dim="Vp",
