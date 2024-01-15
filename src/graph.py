@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
+from src.util import sort_unique
+
+
 COLOR_SCALE = px.colors.qualitative.Plotly
 
 
@@ -25,7 +28,7 @@ class Plot:
     def _get_type_colors(self, type_colors_scale, raw_data):
         return {
             t: type_colors_scale[i]
-            for i, t in enumerate(raw_data['Type'].drop_duplicates().sort_values())
+            for i, t in enumerate(sort_unique(raw_data['Type']))
         }
 
     def _marker_config(self, type: str, type_data: pd.DataFrame) -> dict:

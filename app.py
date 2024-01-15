@@ -1,8 +1,9 @@
 import streamlit as st
 
 from src.data import load_data, filter_data
-from src.filter import slider, multiselect
+from src.filter import slider
 from src.graph import TrendLinePlot, SizeDimPlot
+from src.util import sort_unique
 
 
 raw_data = load_data()
@@ -18,39 +19,33 @@ with st.sidebar:
     st.title("Filters")
 
     selected_elasticity = slider(
-        data=raw_data,
+        data=raw_data['Ep'],
         label="Primary Elasticity  (Ep)",
-        col="Ep",
     )
 
     selected_ec_ep = slider(
-        data=raw_data,
+        data=raw_data["Ec/Ep"],
         label="Linearity (Ec/Ep)",
-        col="Ec/Ep",
     )
 
     selected_vibration = slider(
-        data=raw_data,
+        data=raw_data["Vp"],
         label="Primary Vibration (Vp)",
-        col="Vp",
     )
 
     selected_vl_vp = slider(
-        data=raw_data,
+        data=raw_data["Vl/Vp"],
         label="Feedback Character (Vl/Vp)",
-        col="Vl/Vp",
     )
 
-    selected_brands = multiselect(
-        data=raw_data,
+    selected_brands = st.multiselect(
         label="Brand",
-        col="Brand",
+        options=sort_unique(raw_data["Brand"])
     )
 
-    selected_types = multiselect(
-        data=raw_data,
+    selected_types = st.multiselect(
         label="Blade Type",
-        col="Type",
+        options=sort_unique(raw_data["Type"])
     )
 
 
